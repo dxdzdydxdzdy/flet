@@ -7,47 +7,41 @@ function App() {
   const [users, setUsers] = useState([]);
   const [comments, setComments] = useState([]);
 
-  const fetchComments = async () => {
-    try {
-      const res = await fetch("https://jsonplaceholder.typicode.com/comments");
-      if (!res.ok) throw new Error("Failed to fetch");
-      const result = await res.json();
-      setComments(result);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const fetchPosts = async () => {
-    try {
-      const res = await fetch("https://jsonplaceholder.typicode.com/posts");
-      if (!res.ok) throw new Error("Failed to fetch");
-      const result = await res.json();
-      setPosts(result);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch("https://jsonplaceholder.typicode.com/users");
-      if (!res.ok) throw new Error("Failed to fetch");
-      const result = await res.json();
-      setUsers(result);
-    } catch (error) {
-      console.log(error);
-    }
-  };
   useEffect(() => {
-    fetchPosts();
-    fetchUsers();
-    fetchComments();
+    const fetchData = async () => {
+      try {
+        const [postsRes, usersRes, commentsRes] = await Promise.all([
+          fetch("https://jsonplaceholder.typicode.com/posts"),
+          fetch("https://jsonplaceholder.typicode.com/users"),
+          fetch("https://jsonplaceholder.typicode.com/comments"),
+        ]);
+
+        if (!postsRes.ok || !usersRes.ok || !commentsRes.ok) {
+          throw new Error("Failed to fetch data");
+        }
+
+        const [postsData, usersData, commentsData] = await Promise.all([
+          postsRes.json(),
+          usersRes.json(),
+          commentsRes.json(),
+        ]);
+
+        setPosts(postsData);
+        setUsers(usersData);
+        setComments(commentsData);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const findUserByUserId = (userId) => {
     const user = users.find((user) => user.id === userId);
     return user ? user["name"] : "unknnown";
   };
+
   const getComments = (postId) => {
     return comments.filter((comment) => comment.postId === postId);
   };
